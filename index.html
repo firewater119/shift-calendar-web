@@ -506,6 +506,17 @@
       .type-item .swatch { width: 34px; height: 34px; min-height: 34px; border-radius: 50%; border: 2px solid var(--line); padding: 0; flex: 0 0 auto; }
       .type-item .swatch.sel { border-color: var(--accent); box-shadow: 0 0 0 2px var(--card-2), 0 0 0 4px var(--accent); }
       .type-item .palette-reset { margin-left: auto; min-height: 34px; flex: 0 0 auto; }
+      /* 사용 안 함은 행마다 아래 넓은 버튼 대신 행 오른쪽의 작은 × 버튼으로 바꾼다 */
+      .type-item .type-x {
+        width: 30px; height: 30px; min-height: 30px; padding: 0; flex: 0 0 auto;
+        border: 1px solid var(--line); border-radius: 50%; background: var(--card);
+        color: var(--muted); font-size: 17px; line-height: 1; font-weight: 700;
+        display: inline-flex; align-items: center; justify-content: center;
+      }
+      .type-item .type-x:active { background: var(--chip-bg); }
+      .type-item .type-restore { flex: 0 0 auto; }
+      .type-item .type-off-note { font-size: 13px; font-weight: 700; color: var(--muted); flex: 0 0 auto; }
+      .type-item.is-off .dot, .type-item.is-off .tname-static, .type-item.is-off input[type="text"] { opacity: 0.45; }
       .guide ol { margin: 8px 0 0; padding-left: 20px; font-size: 14px; line-height: 1.75; }
       .guide b { font-weight: 700; }
       .toast {
@@ -639,7 +650,7 @@
 
         <div class="card">
           <h2>근무 유형</h2>
-          <p class="hint" style="margin-bottom:12px">‘색상표’를 열고 색을 누르면 달력·팀별·통계에 바로 적용됩니다.</p>
+          <p class="hint" style="margin-bottom:12px">‘색상표’를 열고 색을 누르면 달력·팀별·통계에 바로 적용됩니다. 행 오른쪽의 작은 ×를 누르면 그 유형을 사용하지 않습니다. 사용 안 함으로 바꾼 유형은 ‘사용하기’를 눌러 다시 쓸 수 있습니다.</p>
           <div id="typeList"></div>
           <div class="item-actions" style="margin-top:4px">
             <button type="button" class="ghost-btn" id="addCustomType">+ 사용자 유형 추가</button>
@@ -681,7 +692,7 @@
         </div>
 
         <div class="card settings-foot">
-          교대달력 웹 버전 v1.0.30<br />
+          교대달력 웹 버전 v1.0.31<br />
           gloryfire119@gmail.com
         </div>
       </section>
@@ -1441,7 +1452,7 @@
         var c = typeColor(id);
         var nameVal = isCustom ? (state.customLabels[id] || "") : typeLabel(id);
         var off = !!state.disabled[id];
-        var html = '<div class="type-item"><span class="dot"' + (c ? bgStyle(c) : "") + ">" + esc(typeShort(id)) + "</span>";
+        var html = '<div class="type-item' + (off ? " is-off" : "") + '"><span class="dot"' + (c ? bgStyle(c) : "") + ">" + esc(typeShort(id)) + "</span>";
         if (isCustom) {
           html += '<input type="text" data-typename="' + id + '" placeholder="사용자 유형 이름 (예: 연차)" value="' + esc(nameVal) + '" />';
         } else {
@@ -1451,8 +1462,13 @@
         html += '<button type="button" class="ghost-btn" data-typepalette="' + id + '" aria-expanded="' + (paletteOpenId === id) + '">색상표</button>';
         if (isCustom && isPending) {
           html += '<button type="button" class="ghost-btn" data-typedelete="' + id + '">취소</button>';
+        } else if (off) {
+          /* 사용 안 함인 유형: × 대신 상태를 알리고 ‘사용하기’로 다시 쓸 수 있게 한다 */
+          html += '<span class="type-off-note">사용 안 함</span>';
+          html += '<button type="button" class="ghost-btn type-restore" data-typedisable="' + id + '">사용하기</button>';
+          if (isCustom) html += '<button type="button" class="danger-btn" data-typedelete="' + id + '">삭제</button>';
         } else {
-          html += '<button type="button" class="ghost-btn" data-typedisable="' + id + '">' + (off ? "사용하기" : "사용 안 함") + "</button>";
+          html += '<button type="button" class="type-x" data-typedisable="' + id + '" title="사용 안 함" aria-label="' + esc(nameVal) + ' 사용 안 함으로 바꾸기">×</button>';
           if (isCustom) html += '<button type="button" class="danger-btn" data-typedelete="' + id + '">삭제</button>';
         }
         html += '<div class="type-palette' + (paletteOpenId === id ? " open" : "") + '">';
